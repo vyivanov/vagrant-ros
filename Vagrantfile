@@ -29,7 +29,8 @@ $config_environment = <<SCRIPT
 sudo sh -c 'echo "LANGUAGE=en_US.UTF-8
 LC_ALL=en_US.UTF-8
 LANG=en_US.UTF-8
-LC_TYPE=en_US.UTF-8" > /etc/default/locale' && sudo adduser vagrant dialout
+LC_TYPE=en_US.UTF-8" > /etc/default/locale' &&
+sudo adduser vagrant dialout
 SCRIPT
 
 Vagrant.configure("2") do |config|
@@ -41,6 +42,7 @@ Vagrant.configure("2") do |config|
         kinetic.vm.box = "boxcutter/ubuntu1604-desktop"
         kinetic.vm.box_check_update = false
         kinetic.vm.hostname = "kinetic"
+        kinetic.vm.provision "file",  source: ".bashrc", destination: "/home/vagrant/.bashrc"
         kinetic.vm.provision "shell", inline: $install_kinetic, privileged: false
         kinetic.vm.provision "shell", inline: $install_dependencies, privileged: false
         kinetic.vm.provision "shell", inline: $config_environment, privileged: false
