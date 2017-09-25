@@ -8,6 +8,8 @@ echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc &&
 sudo apt-get install -y python-rosinstall python-rosinstall-generator python-wstool build-essential
 SCRIPT
 
+####################################################################################################
+
 $install_dependencies = <<SCRIPT
 sudo apt-get install -y                         \
     ros-kinetic-moveit-core                     \
@@ -25,32 +27,79 @@ sudo apt-get install -y                         \
     ros-kinetic-effort-controllers
 SCRIPT
 
+####################################################################################################
+
 $config_environment = <<SCRIPT
 sudo sh -c 'echo "LANGUAGE=en_US.UTF-8
 LC_ALL=en_US.UTF-8
 LANG=en_US.UTF-8
 LC_TYPE=en_US.UTF-8" > /etc/default/locale' &&
+echo 'alias killros="killall rosmaster; killall gzserver; killall -9 roslaunch; killall image_view; killall gzclient"' >> ~/.bashrc &&
 sudo adduser vagrant dialout
 SCRIPT
 
+####################################################################################################
+
+require 'FFI'
+
+####################################################################################################
+
+def get_host(cap)
+    if cap == "RAM"
+        if FFI::Platform::IS_MAC
+            return `sysctl -n hw.memsize`.to_i / (1024 * 1024 * 2)
+        elsif FFI::Platform::IS_LINUX
+            return `grep 'MemTotal' /proc/meminfo | sed -e 's/MemTotal://' -e 's/ kB//'`.to_i / (1024 * 2)  ## TODO: to test!
+        elsif FFI::Platform::IS_WINDOWS
+            return `wmic OS get TotalVisibleMemorySize`.split("\n")[2].to_i / (1024 * 2)                    ## TODO: to test!
+        end
+    elsif cap == "CPU"
+        if FFI::Platform::IS_MAC
+            return `sysctl -n hw.ncpu`.to_i
+        elsif FFI::Platform::IS_LINUX
+            return `nproc`.to_i                                         ## TODO: to test!
+        else FFI::Platform::IS_WINDOWS
+            return `wmic cpu get NumberOfCores`.split("\n")[2].to_i     ## TODO: to test!
+        end
+    end
+end
+
+####################################################################################################
+
+def define_machine(machine, config)
+    if machine == "kinetic"
+        config.vm.box = "boxcutter/ubuntu1604-desktop"
+        config.vm.hostname = "kinetic"
+        config.vm.provision "file",  source: ".bashrc", destination: "/home/vagrant/.bashrc"
+        config.vm.provision "shell", inline: $install_kinetic, privileged: false
+        config.vm.provision "shell", inline: $install_dependencies, privileged: false
+        config.vm.provision "shell", inline: $config_environment, privileged: false
+    end
+end
+
+####################################################################################################
+
+def define_provider(provider, name, config)
+    config.vm.provider provider do |vm|
+        vm.name = name
+        vm.memory = get_host "RAM"
+        vm.cpus = get_host "CPU"
+    end
+end
+
+####################################################################################################
+
 Vagrant.configure("2") do |config|
-    vm_name = ""
-    mem_size = `sysctl -n hw.memsize`.to_i / (1024 * 1024 * 2)
-    cpu_number = `sysctl -n hw.ncpu`.to_i
-    config.vm.define "kinetic", autostart: false do |kinetic|
-        vm_name = "ROS Kinetic Kame"
-        kinetic.vm.box = "boxcutter/ubuntu1604-desktop"
-        kinetic.vm.box_check_update = false
-        kinetic.vm.hostname = "kinetic"
-        kinetic.vm.provision "file",  source: ".bashrc", destination: "/home/vagrant/.bashrc"
-        kinetic.vm.provision "shell", inline: $install_kinetic, privileged: false
-        kinetic.vm.provision "shell", inline: $install_dependencies, privileged: false
-        kinetic.vm.provision "shell", inline: $config_environment, privileged: false
+    config.vm.define "kinetic-parallels", autostart: false do |kinetic|
+        define_machine "kinetic", kinetic
+        define_provider "parallels", "ROS Kinetic Kame", kinetic
     end
-    config.vm.provider "parallels" do |parallels|
-        parallels.name = vm_name
-        parallels.memory = mem_size
-        parallels.cpus = cpu_number
+    config.vm.define "kinetic-virtualbox", autostart: false do |kinetic|
+        define_machine "kinetic", kinetic
+        define_provider "virtualbox", "ROS Kinetic Kame", kinetic
     end
+    config.vm.box_check_update = false
     config.vm.synced_folder ".", "/vagrant", disabled: true
 end
+
+####################################################################################################
