@@ -5,7 +5,7 @@ This is [Vagrant][1] abstraction around VMs with ROS development environment.
 Supported configurations:
 - ROS: [Kinetic Kame][2]
 - Provider: [Parallels Desktop][3], [Oracle Virtualbox][4]
-- Platform: macOS, Linux (**didn't tested**), Windows (**didn't tested**)
+- Platform: macOS, Linux (**didn't test**), Windows (**didn't test**)
 
 Pre-requirements
 ----------------
