@@ -70,8 +70,9 @@ def define_machine(machine, config)
     if machine == "kinetic"
         ## BUG: this box is not supported anymore.
         ##      Possible ways to fix:
-        ##        1. to use stable command line box and to install desktop during provision
-        ##        2. to prepare own box with desktop
+        ##        1. to use another desktop box from community
+        ##        2. to use stable command line box and to install desktop during provision
+        ##        3. to prepare own box with desktop
         config.vm.box = "boxcutter/ubuntu1604-desktop"
         config.vm.hostname = "kinetic"
         config.vm.provision "file",  source: ".bashrc", destination: "/home/vagrant/.bashrc"
