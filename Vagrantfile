@@ -8,8 +8,6 @@ echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc &&
 sudo apt-get install -y python-rosinstall python-rosinstall-generator python-wstool build-essential
 SCRIPT
 
-####################################################################################################
-
 $install_dependencies = <<SCRIPT
 sudo apt-get install -y                         \
     ros-kinetic-moveit-core                     \
@@ -27,8 +25,6 @@ sudo apt-get install -y                         \
     ros-kinetic-effort-controllers
 SCRIPT
 
-####################################################################################################
-
 $config_environment = <<SCRIPT
 sudo sh -c 'echo "LANGUAGE=en_US.UTF-8
 LC_ALL=en_US.UTF-8
@@ -38,11 +34,7 @@ echo 'alias killros="killall rosmaster; killall gzserver; killall -9 roslaunch; 
 sudo adduser vagrant dialout
 SCRIPT
 
-####################################################################################################
-
 require 'FFI'
-
-####################################################################################################
 
 def get_host(cap)
     if cap == "RAM"
@@ -64,16 +56,12 @@ def get_host(cap)
     end
 end
 
-####################################################################################################
-
-def define_machine(machine, config)
+def define_machine(machine, provider, config)
     if machine == "kinetic"
-        ## BUG: this box is not supported anymore.
-        ##      Possible ways to fix:
-        ##        1. to use another desktop box from community
-        ##        2. to use stable command line box and to install desktop during provision
-        ##        3. to prepare own box with desktop
-        config.vm.box = "boxcutter/ubuntu1604-desktop"
+        config.vm.box = "boxcutter-ubuntu1604-desktop"
+        ## boxcutter/ubuntu1604-desktop base box is not supported anymore by creator.
+        ## The box was backuped manually from local copy and was uploaded to server.
+        config.vm.box_url = "http://vova-ivanov.info/vagrant/#{provider}/boxcutter-ubuntu1604-desktop.box"
         config.vm.hostname = "kinetic"
         config.vm.provision "file",  source: ".bashrc", destination: "/home/vagrant/.bashrc"
         config.vm.provision "shell", inline: $install_kinetic, privileged: false
@@ -81,8 +69,6 @@ def define_machine(machine, config)
         config.vm.provision "shell", inline: $config_environment, privileged: false
     end
 end
-
-####################################################################################################
 
 def define_provider(provider, name, config)
     config.vm.provider provider do |vm|
@@ -92,19 +78,15 @@ def define_provider(provider, name, config)
     end
 end
 
-####################################################################################################
-
 Vagrant.configure("2") do |config|
     config.vm.define "kinetic-parallels", autostart: false do |kinetic|
-        define_machine "kinetic", kinetic
+        define_machine "kinetic", "parallels", kinetic
         define_provider "parallels", "ROS Kinetic Kame", kinetic
     end
     config.vm.define "kinetic-virtualbox", autostart: false do |kinetic|
-        define_machine "kinetic", kinetic
+        define_machine "kinetic", "virtualbox", kinetic
         define_provider "virtualbox", "ROS Kinetic Kame", kinetic
     end
     config.vm.box_check_update = false
     config.vm.synced_folder ".", "/vagrant", disabled: true
 end
-
-####################################################################################################
