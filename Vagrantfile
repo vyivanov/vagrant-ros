@@ -25,6 +25,10 @@ sudo apt-get install -y                         \
     ros-kinetic-effort-controllers
 SCRIPT
 
+$install_additional_packages = <<SCRIPT
+sudo apt-get install -y xclip
+SCRIPT
+
 $config_environment = <<SCRIPT
 sudo sh -c 'echo "LANGUAGE=en_US.UTF-8
 LC_ALL=en_US.UTF-8
@@ -66,6 +70,7 @@ def define_machine(machine, provider, config)
         config.vm.provision "file",  source: ".bashrc", destination: "/home/vagrant/.bashrc"
         config.vm.provision "shell", inline: $install_kinetic, privileged: false
         config.vm.provision "shell", inline: $install_dependencies, privileged: false
+        config.vm.provision "shell", inline: $install_additional_packages, privileged: false
         config.vm.provision "shell", inline: $config_environment, privileged: false
     end
 end
