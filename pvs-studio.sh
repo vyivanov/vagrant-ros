@@ -37,7 +37,7 @@ function main()
     local ROOT=$(pwd)
     local SRCS=$(find ${ROOT} -name "*.cpp")
 
-    cd ${PUSHD} && cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=On
+    cd ${PUSHD} && rm -rf ./pvs-studio/ && cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=On
 
     insert_comments "${SRCS[@]}"
 
