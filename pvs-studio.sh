@@ -43,7 +43,7 @@ function main()
 
     pvs-studio-analyzer analyze -o ./pvs-studio.log -j$(nproc --all)
     plog-converter -a GA:1,2 -t tasklist -o ./pvs-studio.tasks ./pvs-studio.log
-    plog-converter -a GA:1,2 -t fullhtml ./pvs-studio.log -o ./pvs-studio/
+    plog-converter -a GA:1,2 -t fullhtml -o ./pvs-studio/ ./pvs-studio.log
 
     delete_comments "${SRCS[@]}"
 }
